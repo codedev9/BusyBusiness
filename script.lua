@@ -1,6 +1,7 @@
 local repo = 'https://raw.githubusercontent.com/mstudio45/LinoriaLib/main/'
 
-local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+local Library = loadstring(game:HttpGet(repo..'Library.lua'))()
+
 local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
 local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
 local Options = Library.Options
@@ -28,10 +29,6 @@ local Script = {
 		["Objects"] = PLAYER_PLOT.Objects
 	}
 }
-local useMachine = game:GetService("ReplicatedStorage").Communication.UseMachine
-local orderCustomer = game:GetService("ReplicatedStorage").Communication.CustomerOrder
-local serveCustomer = game:GetService("ReplicatedStorage").Communication.ServeCustomer
-local upgradeMachine = game:GetService("ReplicatedStorage").Communication.UpgradeMachine
 --// test library
 Library.ShowToggleFrameInKeybinds = true -- Make toggle keybinds work inside the keybinds UI (aka adds a toggle to the UI). Good for mobile users (Default value = true)
 Library.ShowCustomCursor = true -- Toggles the Linoria cursor globaly (Default value = true)
@@ -56,32 +53,32 @@ local Tabs = {
     UISettings = Window:AddTab('UI Settings')
 }
 --// Player Tab
-local HumanoidSection = Tabs.Player:AddLeftGroupbox('Humanoid')
-local CharacterSection = Tabs.Player:AddRightGroupbox('Character')
+local HumanoidSection = Tabs.Player:AddLeftGroupbox('Player Mods')
+local CharacterSection = Tabs.Player:AddRightGroupbox('Character Mods')
+local QuickButtonsSection = Tabs.Player:AddRightGroupbox('QuickButtons')
 --// Humanoid Section
 HumanoidSection:AddSlider('Speed Hack', {
 	Text = 'Speed Hack',
 	Default = 16,
-	Min = 0,
+	Min = 16,
 	Max = 250,
 	Rounding = 1,
 	Compact = false,
-
 	Callback = function(Value)
-		game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = math.floor(Value)
+		Script.Variables.LocalPlayer.Character.Humanoid.WalkSpeed = math.floor(Value)
 	end,
 	Visible = true -- Fully optional (Default value = true)
 })
 HumanoidSection:AddSlider('Jump Hack', {
 	Text = 'Jump Hack',
 	Default = 50,
-	Min = 0,
+	Min = 50,
 	Max = 250,
 	Rounding = 1,
 	Compact = false,
 
 	Callback = function(Value)
-		game.Players.LocalPlayer.Character.Humanoid.JumpPower = math.floor(Value)
+		Script.Variables.LocalPlayer.Character.Humanoid.JumpPower = math.floor(Value)
 	end,
 	Visible = true -- Fully optional (Default value = true)
 })
@@ -110,17 +107,34 @@ CharacterSection:AddToggle('Noclip', {
 	Visible = true, -- Fully optional (Default value = true)
 	Risky = false -- Makes the text red (the color can be changed using Library.RiskColor) (Default value = false)
 })
+local connection
 CharacterSection:AddToggle('InfJump', {
 	Text = 'Infinite Jump',
 	Default = false, -- Default value (true / false)
 	Tooltip = 'Allows you yo jump inf times', -- Information shown when you hover over the toggle
 
 	Callback = function(Value)
-		game:GetService("UserInputService").JumpRequest:connect(function() if Value then game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping") end end)
+		if Value then
+			connection = game:GetService("UserInputService").JumpRequest:Connect(function() 
+				game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping") 
+			end)
+		else
+			connection:Disconnect()
+		end
 	end,
 
 	Visible = true, -- Fully optional (Default value = true)
 	Risky = false -- Makes the text red (the color can be changed using Library.RiskColor) (Default value = false)
+})
+--// Quick Buttons Section
+local QuickButtonsRejoin = QuickButtonsSection:AddButton({
+	Text = 'Rejoin',
+	Func = function()
+		Library:Notify("Rejoining Server", nil, 4590657391)
+		game:GetService("TeleportService"):Teleport(game.PlaceId, Script.Variables.LocalPlayer)
+	end,
+	DoubleClick = true,
+	Tooltip = 'rejoins the server'
 })
 --// Game Tab
 local BusinessSection = Tabs.Game:AddLeftGroupbox('Business')
@@ -135,75 +149,78 @@ BusinessSection:AddToggle('InstantPrompts', {
 				v.HoldDuration = 0
 			end
 		end
+	end,
+	Visible = true, -- Fully optional (Default value = true)
+    Risky = false
+})
+BusinessSection:AddToggle('NoCooldown', {
+	Text = 'No Cooldown',
+	Tooltip = 'Makes all of the machines cooldown 0',
+	Callback = function(Value)
 		for i, v in PLAYER_PLOT.Stats:GetChildren() do 
 			if v:IsA("NumberValue") and v.Name:match("Time") then 
 				v.Value = 0
-				Library:Notify("Instant Prompts - Set Time to 0 ("..v.Name..")", nil, 4590657391)
 			end
 		end
 	end,
 	Visible = true, -- Fully optional (Default value = true)
     Risky = false
 })
-local enabled2 = false
-
+local enabled2 = true
+local function convert(text)
+    text = text:gsub("%$", "")
+    local multipliers = {
+    k = 1e3, K = 1e3,
+    m = 1e6, M = 1e6,
+    b = 1e9, B = 1e9,
+    t = 1e12, T = 1e12
+    }
+    local letter = text:match("%a") -- Matches the first letter (e.g., "K")
+    local number = text:gsub("%a", "") -- Remove the letter to extract the numeric part
+    -- Get the multiplier or default to 1 if no multiplier found
+    local multiplier = multipliers[letter] or 1
+    local amount = tonumber(number) * multiplier
+	return amount
+end
 BusinessSection:AddToggle('AutoUpgradeMachines', {
     Text = 'Auto Upgrade Machines',
     Tooltip = 'Automatically upgrades machines based on available money.',
+	Default = false,
     Callback = function(Value)
         enabled2 = Value -- Set enabled2 to the toggle value (true/false)
         if enabled2 then
-            print("enabled")
-            task.spawn(function() -- Run the loop in a separate thread
-                while enabled2 and wait() do
-                    for i, v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.Main.UpgradePrompts:GetChildren()) do
-                        -- Check if the upgrade is not at Max Level
-                        if v:FindFirstChild("Main") and v.Main:FindFirstChild("Button") and v.Main.Button:FindFirstChild("TextLabel") then
-                            if v.Main.Button.TextLabel.Text ~= "Max Level" then
-                                -- Get the text level and remove the dollar sign
-                                local text = v.Main.Button.TextLabel.Text
-                                text = text:gsub("%$", "")
+			while enabled2 and wait() do
+				for i, v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.Main.UpgradePrompts:GetChildren()) do
+					if v:FindFirstChild("Main") and v.Main:FindFirstChild("Button") and v.Main.Button:FindFirstChild("TextLabel") then
+						if v.Main.Button.TextLabel.Text ~= "Max Level" then
+							task.spawn(function()
+								local amount = convert(v.Main.Title.Text)
 
-                                -- Define multipliers for the currency
-                                local multipliers = {
-                                    k = 1e3, K = 1e3,
-                                    m = 1e6, M = 1e6,
-                                    b = 1e9, B = 1e9,
-                                    t = 1e12, T = 1e12
-                                }
+							-- Check if the player has enough money and button stroke color matches the condition
+							if game.Players.LocalPlayer.leaderstats.Money.Value >= amount 
+								and v.Main.Button.UIStroke.Color == Color3.fromRGB(25, 130, 2) then
+								
+								local amountoftimes = math.floor(game.Players.LocalPlayer.leaderstats.Money.Value / amount)
+								
+								for j = 1, amountoftimes do
+									Script.Remotes.UpgradeMachine:FireServer(v.Main.Title.Text)
+									wait(1)
+								end
 
-                                -- Extract the letter and numeric value from the text
-                                local letter = text:match("%a") -- Matches the first letter (e.g., "K")
-                                local number = text:gsub("%a", "") -- Remove the letter to extract the numeric part
-
-                                -- Get the multiplier or default to 1 if no multiplier found
-                                local multiplier = multipliers[letter] or 1
-                                local amount = tonumber(number) * multiplier
-
-                                -- Check if the player has enough money and button stroke color matches the condition
-                                if game.Players.LocalPlayer.leaderstats.Money.Value >= amount 
-                                    and v.Main.Button.UIStroke.Color == Color3.fromRGB(25, 130, 2) then
-                                    
-                                    local amountoftimes = math.floor(game.Players.LocalPlayer.leaderstats.Money.Value / amount)
-                                    
-                                    for j = 1, amountoftimes do
-                                        Script.Remotes.UpgradeMachine:FireServer(v.Main.Title.Text)
-                                        wait(1)
-                                    end
-
-                                    -- Notify the player of the successful upgrade
-                                    Library:Notify("Upgraded Machine - "..v.Name.." "..amountoftimes.." times.", nil, 4590657391)
-                                    print("Upgrade Successful for", v.Name)
-                                    -- Break the loop after processing this upgrade
-                                    break
-                                end
-                            end
-                        end
-                    end
-                end
-            end)
-        else
-            print("disabled")
+								-- Notify the player of the successful upgrade
+								Library:Notify("Upgraded Machine - "..v.Name.." "..amountoftimes.." times.", nil, 4590657391)
+								-- Break the loop after processing this upgrade
+								return
+							end
+							end)
+						else
+							Library:Notify("Upgrade Machine - you maxed out all of the machines bro", nil, 4590657391)
+							Toggles.AutoUpgradeMachines:SetValue(false)
+							return
+						end
+					end
+				end
+			end
         end
     end,
     Visible = true, -- Fully optional (Default value = true)
@@ -400,20 +417,42 @@ ExploitSection:AddButton({
 --// Visuals tab
 local ESPSection = Tabs.Visuals:AddLeftGroupbox('ESP')
 --// ESP
+-- Function to create a highlight and a BillboardGui for a model
+-- Function to create a highlight and a BillboardGui on the model
+local function addHighlightAndLabel(model)
+    -- Create the Highlight for the model
+    local highlight = Instance.new("Highlight")
+    highlight.Parent = model
+    highlight.Adornee = model
+    highlight.FillColor = Color3.fromRGB(255, 255, 255)  -- Highlight color (yellow)
+    highlight.FillTransparency = 0.5  -- Transparency of the highlight
+    highlight.OutlineTransparency = 0  -- Transparency of the outline
+end
+-- ESP Toggle
 ESPSection:AddToggle('ESP', {
-	Text = 'ESP',
-	Default = true, -- Default value (true / false)
-	Tooltip = 'shows stuff through walls', -- Information shown when you hover over the toggle
+    Text = 'ESP',
+    Default = true, -- Default value (true / false)
+    Tooltip = 'Shows stuff through walls', -- Information shown when you hover over the toggle
 
-	Callback = function(Value)
-	end,
+    Callback = function(Value)
+        -- Loop through each object in PLAYER_PLOT.Objects
+        for _, object in pairs(PLAYER_PLOT.Objects:GetChildren()) do
+            -- Check if the object has an "Item" child
+            if object:FindFirstChild("Item") then
+                -- Call the addHighlightAndLabel function to add ESP to the object
+                addHighlightAndLabel(object)
+            end
+        end
+    end,
 
-	Visible = true, -- Fully optional (Default value = true)
-	Risky = false -- Makes the text red (the color can be changed using Library.RiskColor) (Default value = false)
+    Visible = true,  -- Optional, shows the toggle in the ESP section
+    Risky = false,  -- Optional, changes the text color of the toggle if set to true
 })
+
 
 --// Extra Tab
 local FunSection = Tabs.Extra:AddLeftGroupbox('Fun/Client-Sided Stuff')
+local FakeStuffSection = Tabs.Extra:AddLeftGroupbox('Fake Stuff')
 local ModsSection = Tabs.Extra:AddRightGroupbox('Mods')
 --// Fun Section
 local enabled
@@ -460,8 +499,7 @@ FunSection:AddToggle('AllGamepasses', {
 	Visible = true, -- Fully optional (Default value = true)
 	Risky = false -- Makes the text red (the color can be changed using Library.RiskColor) (Default value = false)
 })
-FunSection:AddLabel('⚠️⚠️⚠️⚠️⚠️', true)
-FunSection:AddToggle('InfAll', {
+FakeStuffSection:AddToggle('InfAll', {
 	Text = 'Infinite Everything',
 	Default = false, -- Default value (true / false)
 	Tooltip = 'gives you everything inf 1000000%', -- Information shown when you hover over the toggle
@@ -473,7 +511,7 @@ FunSection:AddToggle('InfAll', {
 	Visible = true, -- Fully optional (Default value = true)
 	Risky = false -- Makes the text red (the color can be changed using Library.RiskColor) (Default value = false)
 })
-FunSection:AddToggle('AutoRejoin', {
+FakeStuffSection:AddToggle('AutoRejoin', {
 	Text = 'Auto Rejoin',
 	Default = false, -- Default value (true / false)
 	Tooltip = 'auto rejoins the game', -- Information shown when you hover over the toggle
@@ -485,14 +523,13 @@ FunSection:AddToggle('AutoRejoin', {
 	Visible = true, -- Fully optional (Default value = true)
 	Risky = false -- Makes the text red (the color can be changed using Library.RiskColor) (Default value = false)
 })
-FunSection:AddToggle('Admin', {
-	Text = 'Get Admin',
+FakeStuffSection:AddToggle('Admin', {
+	Text = 'Admin Commands',
 	Default = false, -- Default value (true / false)
-	Tooltip = 'makes you have admin', -- Information shown when you hover over the toggle
+	Tooltip = 'executes inf yeild', -- Information shown when you hover over the toggle
 
 	Callback = function(Value)
 		loadstring(game:HttpGet(('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'),true))()
-		Library:Notify("you now have commands", nil, 4590657391)
 	end,
 
 	Visible = true, -- Fully optional (Default value = true)
@@ -510,35 +547,14 @@ local usetrash = ModsSection:AddButton({
 
 
 --// UI Settings/OtherStuff
-local FrameTimer = tick()
-local FrameCounter = 0;
-local FPS = 60;
-
-local WatermarkConnection = game:GetService('RunService').RenderStepped:Connect(function()
-	FrameCounter += 1;
-
-	if (tick() - FrameTimer) >= 1 then
-		FPS = FrameCounter;
-		FrameTimer = tick();
-		FrameCounter = 0;
-	end;
-
-	Library:SetWatermark(('LinoriaLib demo | %s fps | %s ms'):format(
-		math.floor(FPS),
-		math.floor(game:GetService('Stats').Network.ServerStatsItem['Data Ping']:GetValue())
-	));
-end);
 
 Library:OnUnload(function()
-	WatermarkConnection:Disconnect()
-
-	print('Unloaded!')
 	Library.Unloaded = true
 end)
 
 local MenuGroup = Tabs.UISettings:AddLeftGroupbox('UI Settings')
 MenuGroup:AddToggle("KeybindMenuOpen", { Default = Library.KeybindFrame.Visible, Text = "Open Keybind Menu", Callback = function(value) Library.KeybindFrame.Visible = value end})
-MenuGroup:AddToggle("Execute On Teleport", { Default = false, Text = "Execute On Teleport", Callback = function(value) queue_on_teleport("print(not released yet)") end})
+MenuGroup:AddToggle("Execute On Teleport", { Default = false, Text = "Execute On Teleport", Callback = function(value) end})
 MenuGroup:AddToggle("ShowCustomCursor", {Text = "Custom Cursor", Default = true, Callback = function(Value) Library.ShowCustomCursor = Value end})
 MenuGroup:AddDivider()
 MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true, Text = "Menu keybind" })
