@@ -128,7 +128,6 @@ CharacterSection:AddToggle('InfJump', {
 local QuickButtonsRejoin = QuickButtonsSection:AddButton({
 	Text = 'Rejoin',
 	Func = function()
-		Library:Notify("Rejoining Server", nil, 4590657391)
 		game:GetService("TeleportService"):Teleport(game.PlaceId, Script.Variables.LocalPlayer)
 	end,
 	DoubleClick = true,
@@ -402,6 +401,53 @@ BusinessSection:AddToggle('ClickServe', {
     Tooltip = 'Click on a customer and it serves them',
     Callback = function(Value)
         enabled = Value
+    end,
+    Visible = true,
+    Risky = false
+})
+local enabled32 = false
+BusinessSection:AddToggle('DailyRewards', {
+	Text = 'Auto Daily Rewards',
+	Tooltip = 'Auto collects the daily rewards',
+	Callback = function(Value)
+		enabled32 = Value
+		
+		
+		while enabled32 and wait(0.05) do
+			for i = 1, 9 do
+				local args = {
+					[1] = yes.Name
+				}
+					
+				game:GetService("ReplicatedStorage"):WaitForChild("Communication"):WaitForChild("ClaimPlaytimeReward"):InvokeServer(unpack(args))
+				wait(0.05)	
+			end
+		end
+	end,
+	Visible = true, -- Fully optional (Default value = true)
+    Risky = false
+})
+local enabled732 = false
+local numbers = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30}
+BusinessSection:AddToggle('SeasonRewards', {
+    Text = 'Auto Season Rewards',
+    Default = false,
+    Tooltip = 'Auto collects the season rewards',
+    Callback = function(Value)
+        enabled732 = Value
+		while enabled732 == true and wait(0.05) do
+			local yes = game:GetService("Players").LocalPlayer.PlayerGui.Main.Menus.SeasonPass.Inner.Tab_Rewards.ScrollingFrame.Hold.Levels
+			for i, v in yes:GetChildren() do
+				if table.find(numbers, tonumber(v.Name)) and v.Top.Claim.Visible == true then 
+					local args = {
+						[1] = tonumber(v.Name),
+						[2] = false
+					}
+					
+					game:GetService("ReplicatedStorage"):WaitForChild("Communication"):WaitForChild("SeasonPass"):WaitForChild("Claim"):FireServer(unpack(args))
+				end
+			end
+		end
     end,
     Visible = true,
     Risky = false
