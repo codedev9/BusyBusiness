@@ -406,6 +406,39 @@ BusinessSection:AddToggle('ClickServe', {
     Visible = true,
     Risky = false
 })
+-- changing costumes
+--[[
+WHERE THE CREW ARE STORED: game:GetService("Players").LocalPlayer.PlayerGui.Main.Menus.Costumes.Inner.Workers.List.Hold
+WHERE THE CSOSTUMES ARE STORED: game:GetService("Players").LocalPlayer.PlayerGui.Main.Menus.Costumes.Inner.Costumes.List.Hold
+REMOTE TO CHANGE: 
+local args = {
+    [1] = "1", -- which one you want to change
+    [2] = "Chef (Girl)" -- if empty it becomes the default
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Communication"):WaitForChild("EquipCostume"):FireServer(unpack(args))
+
+]]
+-- variables
+local crewselected
+local costumeselected
+local crewtable = {}
+local costumetable = {}
+for n, v in  game:GetService("Players").LocalPlayer.PlayerGui.Main.Menus.Costumes.Inner.Workers.List.Hold:GetChildren() do -- CREW TABLE SORTING
+	if v:IsA("Frame") and v.Name ~= "Example" then
+		local title = v.Title
+	end
+end
+BusinessSection:AddDropdown('CrewDropdown', {
+	Values = {},
+	Default = 1, -- number index of the value / string
+	Multi = false, -- true / false, allows multiple choices to be selected
+
+	Text = 'Crew Selection',
+	Tooltip = 'select the crew you would like to change costumes', -- Information shown when you hover over the dropdown
+
+	Callback = function(Value)
+	end
+})
 --// Rewards Section
 local enabled32 = false
 RewardsSection:AddToggle('DailyRewards', {
