@@ -1,109 +1,3 @@
-
-local url = 'https://raw.githubusercontent.com/mstudio45/LinoriaLib/main/' 
-local library = loadstring(game:HttpGet(url..'Library.lua'))() 
-local themeManager = loadstring(game:HttpGet(url..'addons/ThemeManager.lua'))() 
-local saveManager = loadstring(game:HttpGet(url..'addons/SaveManager.lua'))() 
-local options = library.Options 
-local toggles = library.Toggles 
-local temp = {} 
-local keyValid = false 
-local chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-
-function encodeToBinary(input)
-    return ((input:gsub('.', function(char) 
-        local binary, value = '', char:byte() 
-        for i = 8, 1, -1 do 
-            binary = binary .. (value % 2^i - value % 2^(i-1) > 0 and '1' or '0') 
-        end
-        return binary 
-    end) .. '0000'):gsub('%d%d%d?%d?%d?%d?', function(chunk) 
-        if #chunk < 6 then return '' end 
-        local value = 0 
-        for i = 1, 6 do 
-            value = value + (chunk:sub(i, i) == '1' and 2^(6-i) or 0) 
-        end 
-        return chars:sub(value + 1, value + 1) 
-    end))
-end
-
-function decodeFromBase64(input)
-    input = input:gsub('[^'..chars..'=]', '') 
-    return input:gsub('.', function(char) 
-        if char == '=' then return '' end 
-        local binary, index = '', (chars:find(char) - 1) 
-        for i = 6, 1, -1 do 
-            binary = binary .. (index % 2^i - index % 2^(i-1) > 0 and '1' or '0') 
-        end
-        return binary 
-    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(chunk) 
-        if #chunk < 8 then return '' end 
-        local value = 0 
-        for i = 1, 8 do 
-            value = value + (chunk:sub(i, i) == '1' and 2^(8-i) or 0) 
-        end 
-        return string.char(value) 
-    end)
-end
-
-local keyPageLink = 'https://pastebin.com/uC6iEyvu' 
-local validKey = 'busybusiness24' 
-local Window = library:CreateWindow({
-    Title = "Key System", 
-    Center = true, 
-    AutoShow = true, 
-    Resizable = true, 
-    ShowCustomCursor = true, 
-    NotifySide = "Left", 
-    TabPadding = 8, 
-    MenuFadeTime = 0.2
-})
-
-local Tabs = {Main = Window:AddTab('Main')} 
-local inputGroup = Tabs.Main:AddLeftGroupbox("Enter your key") 
-inputGroup:AddInput("key", { 
-    Default = 'key', 
-    Numeric = false, 
-    Finished = false, 
-    ClearTextOnFocus = true, 
-    Text = 'key', 
-    Tooltip = "Insert your key here", 
-    Placeholder = 'key', 
-    Callback = function(Value) 
-    end 
-}) 
-
--- Notification message when key is invalid
-local invalidKeyMessage = "Key System | The key you have given is wrong"
-local getKeyMessage = "Key System | The key link has been copied to your clipboard"
-local validKeyButtonText = "Submit Key"
-local getKeyButtonText = "Get Key"
-local submitButton = inputGroup:AddButton({ 
-    Text = validKeyButtonText, 
-    Func = function() 
-        if options.key.Value == validKey then 
-			library:Unload()
-            keyValid = true
-        else 
-            library:Notify(invalidKeyMessage) 
-            setclipboard(keyPageLink) 
-        end 
-    end, 
-    DoubleClick = false, 
-    Tooltip = 'No, this is not obfuscated, bro (It is)' 
-})
-local getkeybutton = inputGroup:AddButton({ 
-    Text = getKeyButtonText, 
-    Func = function() 
-        library:Notify(getKeyMessage) 
-        setclipboard(keyPageLink) 
-    end, 
-    DoubleClick = false, 
-    Tooltip = 'No, this is not obfuscated, bro (It is)' 
-}) 
-
-repeat 
-    wait() 
-until keyValid == true
 local repo = 'https://raw.githubusercontent.com/mstudio45/LinoriaLib/main/'
 local Library = loadstring(game:HttpGet(repo..'Library.lua'))()
 local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
@@ -159,7 +53,7 @@ local Tabs = {
 --// Player Tab
 local HumanoidSection = Tabs.Player:AddLeftGroupbox('Player Mods')
 local CharacterSection = Tabs.Player:AddRightGroupbox('Character Mods')
-local QuickButtonsSection = Tabs.Player:AddRightGroupbox('QuickButtons')
+local QuickButtonsSection = Tabs.Player:AddRightGroupbox('Quick Buttons')
 --// Humanoid Section
 HumanoidSection:AddSlider('Speed Hack', {
 	Text = 'Speed Hack',
@@ -270,65 +164,88 @@ BusinessSection:AddToggle('NoCooldown', {
 	Visible = true, -- Fully optional (Default value = true)
     Risky = false
 })
-local enabled2 = true
+local enabled2 = false -- Initially set to false, so it's disabled by default
+
+-- Convert function to parse and convert text with multipliers
 local function convert(text)
+    -- Remove the dollar sign if present
     text = text:gsub("%$", "")
+
+    -- Define multipliers
     local multipliers = {
-    k = 1e3, K = 1e3,
-    m = 1e6, M = 1e6,
-    b = 1e9, B = 1e9,
-    t = 1e12, T = 1e12
+        k = 1e3, K = 1e3,
+        m = 1e6, M = 1e6,
+        b = 1e9, B = 1e9,
+        t = 1e12, T = 1e12
     }
-    local letter = text:match("%a") -- Matches the first letter (e.g., "K")
-    local number = text:gsub("%a", "") -- Remove the letter to extract the numeric part
-    -- Get the multiplier or default to 1 if no multiplier found
+
+    -- Match the first letter (e.g., 'K', 'M')
+    local letter = text:match("%a")  -- Finds the first alphabetic character
+
+    -- Extract the numeric part of the string
+    local number = text:gsub("%a", "")  -- Remove the letter part
+
+    -- Ensure that the number is valid and not empty
+    local numValue = tonumber(number)
+    if not numValue then
+        return 0  -- Return 0 if number is invalid
+    end
+
+    -- Get the multiplier or default to 1 if no valid letter found
     local multiplier = multipliers[letter] or 1
-    local amount = tonumber(number) * multiplier
-	return amount
+
+    -- Return the calculated amount
+    return numValue * multiplier
 end
+
+-- Add Toggle for Auto Upgrade Machines
 BusinessSection:AddToggle('AutoUpgradeMachines', {
     Text = 'Auto Upgrade Machines',
     Tooltip = 'Automatically upgrades machines based on available money.',
-	Default = false,
+    Default = false,
     Callback = function(Value)
         enabled2 = Value -- Set enabled2 to the toggle value (true/false)
+
+        -- Start the upgrade process when enabled
         if enabled2 then
-			while enabled2 and wait() do
-				for i, v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.Main.UpgradePrompts:GetChildren()) do
-					if v:FindFirstChild("Main") and v.Main:FindFirstChild("Button") and v.Main.Button:FindFirstChild("TextLabel") then
-						if v.Main.Button.TextLabel.Text ~= "Max Level" then
-							task.spawn(function()
-								local amount = convert(v.Main.Title.Text)
+            -- Start the loop
+            while enabled2 do
+                -- A delay to reduce the frequency of the loop
+                wait(0.2)
 
-							-- Check if the player has enough money and button stroke color matches the condition
-							if game.Players.LocalPlayer.leaderstats.Money.Value >= amount 
-								and v.Main.Button.UIStroke.Color == Color3.fromRGB(25, 130, 2) then
-								
-								local amountoftimes = math.floor(game.Players.LocalPlayer.leaderstats.Money.Value / amount)
-								
-								for j = 1, amountoftimes do
-									Script.Remotes.UpgradeMachine:FireServer(v.Main.Title.Text)
-									wait(1)
-								end
+                -- Iterate through each upgrade prompt (each machine)
+                for i, v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.Main.UpgradePrompts:GetChildren()) do
+                    -- Check if the machine has the necessary components for an upgrade
+                    if v:FindFirstChild("Main") and v.Main:FindFirstChild("Button") and v.Main.Button:FindFirstChild("TextLabel") then
+                        -- Continue only if the machine is not at max level
+                        if v.Main.Button.TextLabel.Text ~= "Max Level" then
+                            local amount = convert(v.Main.Button.TextLabel.Text)
 
-								-- Notify the player of the successful upgrade
-								Library:Notify("Upgraded Machine - "..v.Name.." "..amountoftimes.." times.", nil, 4590657391)
-								-- Break the loop after processing this upgrade
-								return
-							end
-							end)
-						else
-							Library:Notify("Upgrade Machine - you maxed out all of the machines bro", nil, 4590657391)
-							Toggles.AutoUpgradeMachines:SetValue(false)
-							return
-						end
-					end
-				end
-			end
+                            -- Check if the machine is ready for upgrade: Player has enough money and button is active
+                            if game.Players.LocalPlayer.leaderstats.Money.Value >= amount
+                                and v.Main.Button.UIStroke.Color == Color3.fromRGB(25, 130, 2) then
+                                    
+                                -- Calculate how many times the machine can be upgraded based on available money
+                                local amountoftimes = math.floor(game.Players.LocalPlayer.leaderstats.Money.Value / amount)
+
+                                -- Process the upgrade for the calculated number of times
+                                for j = 1, amountoftimes do
+                                    -- Fire the upgrade server event
+                                    Script.Remotes.UpgradeMachine:FireServer(v.Main.Title.Text)
+                                    wait(1)  -- Delay between upgrades to avoid overloading the server
+                                end
+                            end
+                        end
+                    end
+                end
+
+                -- Wait before checking again (optional delay)
+                wait(0.5)
+            end
         end
     end,
-    Visible = true, -- Fully optional (Default value = true)
-    Risky = false
+    Visible = true, -- Optional visibility
+    Risky = false -- Optional risk indication
 })
 --// Auto Farm
 local AutoFarmEnabled = false -- Toggle state variable
@@ -336,23 +253,27 @@ local AutoFarmEnabled = false -- Toggle state variable
 BusinessSection:AddToggle('AutoServe', {
     Text = 'Auto Serve',
     Default = false, -- Default value (true / false)
-    Tooltip = 'Automatically serves customers.(do not use manual and auto at the same time)', -- Information shown when you hover over the toggle
+    Tooltip = 'Automatically serves customers. (Do not use manual and auto at the same time)', -- Tooltip information
 
     Callback = function(Value)
         AutoFarmEnabled = Value -- Update the state variable
+
+        -- Start the AutoServe loop when enabled
         if AutoFarmEnabled then
-            task.spawn(function()
+            task.spawn(function() 
                 local ReplicatedStorage = game:GetService("ReplicatedStorage")
                 local Communication = ReplicatedStorage:WaitForChild("Communication")
                 local LocalPlayer = game.Players.LocalPlayer
 
+                -- Keep looping while AutoFarmEnabled is true
                 while AutoFarmEnabled do
+                    -- Check for customers
                     for _, customer in pairs(PLAYER_PLOT:WaitForChild("Customers"):GetChildren()) do
                         -- Spawn a task for each customer
                         task.spawn(function()
                             -- Check if the customer has UI enabled (just placed an order)
                             if customer:FindFirstChild("Head") and customer.Head:FindFirstChild("Objective") and customer.Head.Objective.Enabled then
-                               Script.Remotes.CustomerOrder:FireServer(customer)
+                                Script.Remotes.CustomerOrder:FireServer(customer)
                             end
 
                             -- Check if the customer is already waiting for food
@@ -367,106 +288,123 @@ BusinessSection:AddToggle('AutoServe', {
                                         break
                                     end
                                 end
-                                if not machine then return end -- Exit if no available machine
+
+                                -- If no machine is available, skip
+                                if not machine then return end
 
                                 -- Trash held item if necessary
                                 if LocalPlayer.Character:FindFirstChild("HoldingItem") then
                                     Script.Remotes.UseTrash:FireServer()
                                 end
 
-                                -- Get the item count
+                                -- Get the item count for the customer
                                 local count = tonumber(customer.Head.Objective.Bubble.Count.Text:match("%d+")) or 0
 
-                                -- Use the machine and serve the customer
+                                -- Serve the customer using the available machine
                                 for _ = 1, count do
-                                    if not AutoFarmEnabled then return end -- Exit task if AutoFarm is disabled
+                                    if not AutoFarmEnabled then return end -- Exit if AutoFarm is disabled
                                     Script.Remotes.UseMachine:FireServer(machine, true)
                                     Script.Remotes.ServeCustomer:FireServer(customer)
                                 end
                             end
                         end)
                     end
-                    wait(1) -- Small delay between loop iterations
+                    wait(0.05) -- Add a small delay between loops to prevent spamming
                 end
             end)
         end
     end,
 
-    Visible = true, -- Fully optional (Default value = true)
-    Risky = false -- Makes the text red (the color can be changed using Library.RiskColor) (Default value = false)
+    Visible = true, -- Optional visibility
+    Risky = false -- Optional risk indication
 })
 --// Manual Serve
 local hoverCustomer = nil
 local enabled = false
+
+-- Function to find an available machine
+local function findavailablemachine(item)
+    for _, obj in pairs(PLAYER_PLOT:WaitForChild("Objects"):GetChildren()) do
+        if obj:FindFirstChild("Item") and obj.Item.Value == item and not obj:GetAttribute("InUse") then
+            return obj
+        end
+    end
+    return nil
+end
+
+-- Function to serve a customer
+local function serveCustomer(customer)
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Communication = ReplicatedStorage:WaitForChild("Communication")
+    local LocalPlayer = game.Players.LocalPlayer
+
+    -- Fire the order event for the customer
+    Script.Remotes.CustomerOrder:FireServer(customer)
+
+    -- Get the customer's desired item
+    local item = customer:GetAttribute("Item")
+    local machine = findavailablemachine(item)
+    if not machine then return end
+
+    -- Trash held item if necessary
+    if LocalPlayer.Character:FindFirstChild("HoldingItem") then
+        Script.Remotes.UseTrash:FireServer()
+    end
+
+    -- Get the item count and serve the customer
+    local count = tonumber(customer.Head.Objective.Bubble.Count.Text:match("%d+")) or 0
+    for _ = 1, count do
+        Script.Remotes.UseMachine:FireServer(machine, true)
+        Script.Remotes.ServeCustomer:FireServer(customer)
+    end
+end
+
+-- Mouse detection and click handling
+local mouse = Script.Variables.LocalPlayer:GetMouse()
+
+mouse.Move:Connect(function()
+    if not enabled then return end
+    if mouse.Target and mouse.Target:FindFirstAncestorOfClass("Model") then
+        hoverCustomer = mouse.Target:FindFirstAncestorOfClass("Model")
+    else
+        hoverCustomer = nil
+    end
+end)
+
+mouse.Button1Down:Connect(function()
+    if not enabled or not hoverCustomer then return end
+    local orderTaken = hoverCustomer:GetAttribute("OrderTaken") or false
+    local itemNeeded = hoverCustomer:GetAttribute("Item")
+    local itemsCount = hoverCustomer:GetAttribute("Count") or 0
+    local holding = hoverCustomer:GetAttribute("Holding")
+
+    if orderTaken == false then
+        serveCustomer(hoverCustomer)
+    elseif orderTaken == true and itemsCount ~= 0 then
+        Script.Remotes.UseTrash:FireServer()
+        for _ = 1, itemsCount do
+            local machine = findavailablemachine(itemNeeded)
+            if machine then
+                Script.Remotes.UseMachine:FireServer(machine, true)
+                Script.Remotes.ServeCustomer:FireServer(hoverCustomer)
+            end
+            wait()
+        end
+    elseif orderTaken == true and itemsCount == 0 and holding ~= nil then
+        return
+    end
+end)
+
+-- Toggle for enabling/disabling the serve feature
 BusinessSection:AddToggle('ClickServe', {
     Text = 'Click Serve',
-    Default = false, -- Default value (true / false)
-    Tooltip = 'click on a customer and it serves them', -- Information shown when you hover over the toggle
-	Callback = function(Value)
-		enabled = Value
-		while enabled and wait() do
-			local mouse = game.Players.LocalPlayer:GetMouse()
-        -- Detect mouse movement to check if the player is hovering over a customer
-        mouse.Move:Connect(function()
-            -- We do not need to highlight customers anymore, so we'll just track the hovered customer
-            for _, customer in pairs(PLAYER_PLOT.Customers:GetChildren()) do
-				for j, k in customer:GetDescendants() do
-					if k:IsA("BasePart") then
-						local customerPart = k
-						if customerPart and (mouse.Target == customerPart) then
-							hoverCustomer = customer
-							break
-						end
-					end
-				end
-            end
-        end)
-
-        -- When mouse is clicked, serve the selected customer
-        mouse.Button1Down:Connect(function()
-            if hoverCustomer then
-                local customer = hoverCustomer
-
-                task.spawn(function()
-                    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-                    local Communication = ReplicatedStorage:WaitForChild("Communication")
-                    local LocalPlayer = game.Players.LocalPlayer
-                    
-                    -- Fire the order event for the customer
-                    Script.Remotes.CustomerOrder:FireServer(customer)
-
-                    -- Get the customer's desired item
-                    local item = customer:GetAttribute("Item")
-                    local machine = nil
-                    
-                    -- Find an available machine
-                    for _, obj in pairs(PLAYER_PLOT:WaitForChild("Objects"):GetChildren()) do
-                        if obj:FindFirstChild("Item") and obj.Item.Value == item and not obj:GetAttribute("InUse") then
-                            machine = obj
-                            break
-                        end
-                    end
-                    if not machine then return end  -- Exit if no available machine
-
-                    -- Trash held item if necessary
-                    if LocalPlayer.Character:FindFirstChild("HoldingItem") then
-                        Script.Remotes.UseTrash:FireServer()
-                    end
-
-                    -- Get the item count and serve the customer
-                    local count = tonumber(customer.Head.Objective.Bubble.Count.Text:match("%d+")) or 0
-                    for _ = 1, count do
-                        Script.Remotes.UseMachine:FireServer(machine, true)
-                        Script.Remotes.ServeCustomer:FireServer(customer)
-                    end
-                end)
-            end
-            end)
-		wait(1)
-		end
+    Default = false,
+    Tooltip = 'Click on a customer and it serves them',
+    Callback = function(Value)
+        enabled = Value
     end,
-    Visible = true, -- Fully optional (Default value = true)
-    Risky = false -- Makes the text red (the color can be changed using Library.RiskColor) (Default value = false)
+    Visible = true,
+    Risky = false
 })
 --// Exploits Section
 -- Instant Cook
