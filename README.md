@@ -1,9 +1,6 @@
 # BusyBusiness
 script for busy business
-# Installment
-1. open your executor
-2. copy and paste this script:
+# Script
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/codedev9/BusyBusiness/refs/heads/main/script.lua",true))()
 ```
-script not released
-```
-3. execute and have fun
