@@ -135,6 +135,7 @@ local QuickButtonsRejoin = QuickButtonsSection:AddButton({
 })
 --// Game Tab
 local BusinessSection = Tabs.Game:AddLeftGroupbox('Business')
+local RewardsSection = Tabs.Game:AddLeftGroupbox('Rewards')
 local ExploitSection = Tabs.Game:AddRightGroupbox('Exploits')
 --// Business Section
 BusinessSection:AddToggle('InstantPrompts', {
@@ -405,8 +406,9 @@ BusinessSection:AddToggle('ClickServe', {
     Visible = true,
     Risky = false
 })
+--// Rewards Section
 local enabled32 = false
-BusinessSection:AddToggle('DailyRewards', {
+RewardsSection:AddToggle('DailyRewards', {
 	Text = 'Auto Daily Rewards',
 	Tooltip = 'Auto collects the daily rewards',
 	Callback = function(Value)
@@ -429,7 +431,7 @@ BusinessSection:AddToggle('DailyRewards', {
 })
 local enabled732 = false
 local numbers = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30}
-BusinessSection:AddToggle('SeasonRewards', {
+RewardsSection:AddToggle('SeasonRewards', {
     Text = 'Auto Season Rewards',
     Default = false,
     Tooltip = 'Auto collects the season rewards',
@@ -453,7 +455,7 @@ BusinessSection:AddToggle('SeasonRewards', {
     Risky = false
 })
 --// Exploits Section
--- Instant Cook
+-- Instant Prep
 local products = {}
 for i, v in PLAYER_PLOT.Objects:GetChildren() do
 	if v:FindFirstChild'Item' and v.Name:match("1") then
