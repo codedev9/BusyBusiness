@@ -601,17 +601,121 @@ ExploitSection:AddButton({
 })
 --// Visuals tab
 local RemoverSection = Tabs.Visuals:AddLeftGroupbox('Remover')
-local hitboxenabled = false
-RemoverSection:AddToggle('HitboxRemove', {
-    Text = 'Remove Counter Hitbox',
-    Default = true, -- Default value (true / false)
-    Tooltip = 'Remove the counters hitbox', -- Information shown when you hover over the toggle
+local ESPSection = Tabs.Visuals:AddLeftGroupbox('ESP')
+--// Remover Section
+
+
+
+--// ESP Section
+local Players = game:GetService("Players")
+-- yes im using another library
+local ESPLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/MS-ESP/refs/heads/main/source.lua"))()
+function Script.Functions.ESP(args: ESP)
+    if not args.Object then return Script.Functions.Warn("ESP Object is nil") end
+
+    local ESPManager = {
+        Object = args.Object,
+        Text = args.Text or "No Text",
+        Color = args.Color or Color3.new(),
+        MaxDistance = args.MaxDistance or 5000,
+        Offset = args.Offset or Vector3.zero,
+        IsEntity = args.IsEntity or false,
+        IsDoubleDoor = args.IsDoubleDoor or false,
+        Type = args.Type or "None",
+        OnDestroy = args.OnDestroy or nil,
+
+        Invisible = false,
+        Humanoid = nil
+    }
+
+    if ESPManager.IsEntity and ESPManager.Object.PrimaryPart then
+        if ESPManager.Object.PrimaryPart.Transparency == 1 then
+            ESPManager.Invisible = true
+            ESPManager.Object.PrimaryPart.Transparency = 0.99
+        end
+
+        local humanoid = ESPManager.Object:FindFirstChildOfClass("Humanoid")
+        if not humanoid then humanoid = Instance.new("Humanoid", ESPManager.Object) end
+        ESPManager.Humanoid = humanoid
+    end
+
+    local ESPInstance = ESPLibrary.ESP.Highlight({
+        Name = ESPManager.Text,
+        Model = ESPManager.Object,
+        MaxDistance = ESPManager.MaxDistance,
+        StudsOffset = ESPManager.Offset,
+
+        FillColor = ESPManager.Color,
+        OutlineColor = ESPManager.Color,
+        TextColor = ESPManager.Color,
+        TextSize = Options.ESPTextSize.Value or 16,
+
+        FillTransparency = Options.ESPFillTransparency.Value,
+        OutlineTransparency = Options.ESPOutlineTransparency.Value,
+
+        Tracer = {
+            Enabled = true,
+            From = Options.ESPTracerStart.Value,
+            Color = ESPManager.Color
+        },
+        
+        Arrow = {
+            Enabled = true,
+            CenterOffset = Options.ESPArrowCenterOffset.Value,
+            Color = ESPManager.Color
+        },
+
+        OnDestroy = ESPManager.OnDestroy or function()
+            if ESPManager.Object.PrimaryPart and ESPManager.Invisible then ESPManager.Object.PrimaryPart.Transparency = 1 end
+            if ESPManager.Humanoid then ESPManager.Humanoid:Destroy() end
+        end
+    })
+
+    table.insert(Script.ESPTable[args.Type], ESPInstance)
+
+    return ESPInstance
+end
+local enabled63 = false
+local customerfillcolor = Color3.new(1, 1, 1)  -- Default fill color (White)
+local customeroutlinecolor = Color3.new(0.278431, 0.254901, 0.254901)  -- Default outline color
+
+
+local skeletons = {}  -- Table to store skeletons
+
+-- Variables to store connections for added and removed customers
+local childaddedconnection
+local childremovedconnection
+local CustomerESP
+-- Add the Customer ESP Toggle
+ESPSection:AddToggle('CustomerESP', {
+    Text = 'ESP Customer',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'Allows you to see customers',
 
     Callback = function(Value)
+        enabled63 = Value
+        
+        if enabled63 then
+            -- Event when a new child (customer) is added
+            childaddedconnection = function()
+				
+			end
+        else
+            -- If disabling the toggle, disconnect the events
+            if childaddedconnection then
+                childaddedconnection:Disconnect()
+                childaddedconnection = nil
+            end
+            if childremovedconnection then
+                childremovedconnection:Disconnect()
+                childremovedconnection = nil
+            end
+			CustomerESP.Destroy()
+        end
     end,
 
-    Visible = true,  -- Optional, shows the toggle in the ESP section
-    Risky = false,  -- Optional, changes the text color of the toggle if set to true
+    Visible = true,
+    Risky = false
 })
 
 
@@ -714,7 +818,7 @@ local usetrash = ModsSection:AddButton({
 --// UI Settings/OtherStuff
 
 Library:OnUnload(function()
-	Library.Unloaded = true
+   Library.Unload = true
 end)
 
 local MenuGroup = Tabs.UISettings:AddLeftGroupbox('UI Settings')
