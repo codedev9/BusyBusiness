@@ -243,7 +243,7 @@ BusinessSection:AddToggle('AutoUpgradeMachines', {
                                 for j = 1, amountoftimes do
                                     -- Fire the upgrade server event
                                     Script.Remotes.UpgradeMachine:FireServer(v.Main.Title.Text)
-                                    wait(1)  -- Delay between upgrades to avoid overloading the server
+                                    wait(0.05)  -- Delay between upgrades to avoid overloading the server
                                 end
                             end
                         end
@@ -600,34 +600,14 @@ ExploitSection:AddButton({
 	Tooltip = 'Instantly preps an item'
 })
 --// Visuals tab
-local ESPSection = Tabs.Visuals:AddLeftGroupbox('ESP')
---// ESP
--- Function to create a highlight and a BillboardGui for a model
--- Function to create a highlight and a BillboardGui on the model
-local function addHighlightAndLabel(model)
-    -- Create the Highlight for the model
-    local highlight = Instance.new("Highlight")
-    highlight.Parent = model
-    highlight.Adornee = model
-    highlight.FillColor = Color3.fromRGB(255, 255, 255)  -- Highlight color (yellow)
-    highlight.FillTransparency = 0.5  -- Transparency of the highlight
-    highlight.OutlineTransparency = 0  -- Transparency of the outline
-end
--- ESP Toggle
-ESPSection:AddToggle('ESP', {
-    Text = 'ESP',
+local RemoverSection = Tabs.Visuals:AddLeftGroupbox('Remover')
+local hitboxenabled = false
+RemoverSection:AddToggle('HitboxRemove', {
+    Text = 'Remove Counter Hitbox',
     Default = true, -- Default value (true / false)
-    Tooltip = 'Shows stuff through walls', -- Information shown when you hover over the toggle
+    Tooltip = 'Remove the counters hitbox', -- Information shown when you hover over the toggle
 
     Callback = function(Value)
-        -- Loop through each object in PLAYER_PLOT.Objects
-        for _, object in pairs(PLAYER_PLOT.Objects:GetChildren()) do
-            -- Check if the object has an "Item" child
-            if object:FindFirstChild("Item") then
-                -- Call the addHighlightAndLabel function to add ESP to the object
-                addHighlightAndLabel(object)
-            end
-        end
     end,
 
     Visible = true,  -- Optional, shows the toggle in the ESP section
