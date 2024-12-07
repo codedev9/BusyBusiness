@@ -148,6 +148,7 @@ local BusinessSection = Tabs.Game:AddLeftGroupbox('Business')
 local WorkersSection = Tabs.Game:AddRightGroupbox('Workers')
 local RewardsSection = Tabs.Game:AddLeftGroupbox('Rewards')
 local ExploitSection = Tabs.Game:AddRightGroupbox('Exploits')
+local CustomerExploitSection = Tabs.Game:AddLeftGroupbox('Customer')
 --// Business Section
 BusinessSection:AddToggle('InstantPrompts', {
 	Text = 'Instant Interact',
@@ -599,6 +600,79 @@ ExploitSection:AddButton({
 	DoubleClick = false,
 	Tooltip = 'Instantly preps an item'
 })
+--// Customer Exploits Section
+local customerexploitenabled = false
+CustomerExploitSection:AddToggle('ForceVIP', {
+    Text = 'Force Customer VIP',
+    Default = false,
+    Tooltip = 'Makes a customer a VIP',
+    Callback = function(Value)
+		customerexploitenabled = Value
+		while customerexploitenabled == true and wait(0.05) do
+			for i, v in Script.Variables.PLAYER_PLOT.Customers:GetChildren() do
+				if v:GetAttribute("VIP") == false and v:GetAttribute("OrderTaken") == false then
+					v:SetAttribute("VIP", true)
+				end
+			end
+		end
+    end,
+    Visible = true,
+    Risky = false
+})
+local enabled2222222 = false
+CustomerExploitSection:AddToggle('ForceSanta', {
+    Text = 'Force Customer Santa',
+    Default = false,
+    Tooltip = 'Makes a customer Santa',
+    Callback = function(Value)
+		enabled2222222 = Value
+		while enabled2222222 == true and wait(0.05) do
+			for i, v in Script.Variables.PLAYER_PLOT.Customers:GetChildren() do
+				if v:GetAttribute("IsSanta") == false and v:GetAttribute("OrderTaken") == false then
+					v:SetAttribute("IsSanta", true)
+				end
+			end
+		end
+    end,
+    Visible = true,
+    Risky = false
+})
+local enabled2222222222 = false
+CustomerExploitSection:AddToggle('ForceCric', {
+    Text = 'Force Customer Critic',
+    Default = false,
+    Tooltip = 'Makes a customer a Critic',
+    Callback = function(Value)
+		enabled2222222222 = Value
+		while enabled2222222222 == true and wait(0.05) do
+			for i, v in Script.Variables.PLAYER_PLOT.Customers:GetChildren() do
+				if v:GetAttribute("IsCritic") == false and v:GetAttribute("OrderTaken") == false then
+					v:SetAttribute("IsCritic", true)
+				end
+			end
+		end
+    end,
+    Visible = true,
+    Risky = false
+})
+local enabled2222222222 = false
+CustomerExploitSection:AddToggle('SpoofEarnings', {
+    Text = 'Spoof Customer Earnings',
+    Default = false,
+    Tooltip = 'makes a customer pay googol',
+    Callback = function(Value)
+		enabled2222222222 = Value
+		while enabled2222222222 == true and wait(0.05) do
+			for i, v in Script.Variables.PLAYER_PLOT.Customers:GetChildren() do
+				if v:GetAttribute("OrderTaken") == false then
+					v:SetAttribute("Earnings", 10^100)
+				end
+			end
+		end
+    end,
+    Visible = true,
+    Risky = false
+})
 --// Visuals tab
 local RemoverSection = Tabs.Visuals:AddLeftGroupbox('Remover')
 local ESPSection = Tabs.Visuals:AddLeftGroupbox('ESP')
@@ -608,109 +682,251 @@ local ESPSection = Tabs.Visuals:AddLeftGroupbox('ESP')
 
 --// ESP Section
 local Players = game:GetService("Players")
--- yes im using another library
-local ESPLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/MS-ESP/refs/heads/main/source.lua"))()
-function Script.Functions.ESP(args: ESP)
-    if not args.Object then return Script.Functions.Warn("ESP Object is nil") end
-
-    local ESPManager = {
-        Object = args.Object,
-        Text = args.Text or "No Text",
-        Color = args.Color or Color3.new(),
-        MaxDistance = args.MaxDistance or 5000,
-        Offset = args.Offset or Vector3.zero,
-        IsEntity = args.IsEntity or false,
-        IsDoubleDoor = args.IsDoubleDoor or false,
-        Type = args.Type or "None",
-        OnDestroy = args.OnDestroy or nil,
-
-        Invisible = false,
-        Humanoid = nil
-    }
-
-    if ESPManager.IsEntity and ESPManager.Object.PrimaryPart then
-        if ESPManager.Object.PrimaryPart.Transparency == 1 then
-            ESPManager.Invisible = true
-            ESPManager.Object.PrimaryPart.Transparency = 0.99
-        end
-
-        local humanoid = ESPManager.Object:FindFirstChildOfClass("Humanoid")
-        if not humanoid then humanoid = Instance.new("Humanoid", ESPManager.Object) end
-        ESPManager.Humanoid = humanoid
-    end
-
-    local ESPInstance = ESPLibrary.ESP.Highlight({
-        Name = ESPManager.Text,
-        Model = ESPManager.Object,
-        MaxDistance = ESPManager.MaxDistance,
-        StudsOffset = ESPManager.Offset,
-
-        FillColor = ESPManager.Color,
-        OutlineColor = ESPManager.Color,
-        TextColor = ESPManager.Color,
-        TextSize = Options.ESPTextSize.Value or 16,
-
-        FillTransparency = Options.ESPFillTransparency.Value,
-        OutlineTransparency = Options.ESPOutlineTransparency.Value,
-
-        Tracer = {
-            Enabled = true,
-            From = Options.ESPTracerStart.Value,
-            Color = ESPManager.Color
-        },
-        
-        Arrow = {
-            Enabled = true,
-            CenterOffset = Options.ESPArrowCenterOffset.Value,
-            Color = ESPManager.Color
-        },
-
-        OnDestroy = ESPManager.OnDestroy or function()
-            if ESPManager.Object.PrimaryPart and ESPManager.Invisible then ESPManager.Object.PrimaryPart.Transparency = 1 end
-            if ESPManager.Humanoid then ESPManager.Humanoid:Destroy() end
-        end
-    })
-
-    table.insert(Script.ESPTable[args.Type], ESPInstance)
-
-    return ESPInstance
-end
 local enabled63 = false
 local customerfillcolor = Color3.new(1, 1, 1)  -- Default fill color (White)
 local customeroutlinecolor = Color3.new(0.278431, 0.254901, 0.254901)  -- Default outline color
 
-
-local skeletons = {}  -- Table to store skeletons
-
 -- Variables to store connections for added and removed customers
-local childaddedconnection
-local childremovedconnection
-local CustomerESP
+local addedconnection
+local removedconnection
+
 -- Add the Customer ESP Toggle
 ESPSection:AddToggle('CustomerESP', {
-    Text = 'ESP Customer',
+    Text = 'Customer ESP',
     Default = false, -- Default value (true / false)
     Tooltip = 'Allows you to see customers',
 
     Callback = function(Value)
         enabled63 = Value
-        
         if enabled63 then
-            -- Event when a new child (customer) is added
-            childaddedconnection = function()
-				
+			for j, child in Script.Variables.PLAYER_PLOT.Customers:GetChildren() do
+				local highlight = Instance.new("Highlight", child)
+                    highlight.Adornee = child
+                    highlight.FillColor = customerfillcolor -- Set fill color for the highlight
+                    highlight.OutlineColor = customeroutlinecolor -- Set outline color for the highlight
+                    highlight.OutlineTransparency = 0 -- Make the outline fully visible
+                    highlight.FillTransparency = 0.3 -- Set the fill transparency
+                    highlight.Enabled = true -- Ensure the highlight is enabled and visible
 			end
+            -- Event when a new child (customer) is added
+            addedconnection = Script.Variables.PLAYER_PLOT.Customers.ChildAdded:Connect(function(child)
+                if child.Name == "Customer" then
+					wait(1)
+                    local highlight = Instance.new("Highlight", child)
+                    highlight.Adornee = child
+                    highlight.FillColor = customerfillcolor -- Set fill color for the highlight
+                    highlight.OutlineColor = customeroutlinecolor -- Set outline color for the highlight
+                    highlight.OutlineTransparency = 0 -- Make the outline fully visible
+                    highlight.FillTransparency = 0.3 -- Set the fill transparency
+                    highlight.Enabled = true -- Ensure the highlight is enabled and visible
+                end
+            end)
+
+            -- Event when a customer is removed
+            removedconnection = Script.Variables.PLAYER_PLOT.Customers.ChildRemoved:Connect(function(child)
+            end)
         else
-            -- If disabling the toggle, disconnect the events
-            if childaddedconnection then
-                childaddedconnection:Disconnect()
-                childaddedconnection = nil
+			for j, k in Script.Variables.PLAYER_PLOT.Customers:GetChildren() do
+				if k:FindFirstChild("Highlight") then
+					k.Highlight:Destroy()
+				end
+			end
+            if addedconnection then
+                addedconnection:Disconnect()
+				
             end
-            if childremovedconnection then
-                childremovedconnection:Disconnect()
-                childremovedconnection = nil
+            if removedconnection then
+                removedconnection:Disconnect()
             end
-			CustomerESP.Destroy()
+        end
+    end,
+
+    Visible = true,
+    Risky = false
+})
+--// workers esp
+local enabled632 = false
+local workerfillcolor = Color3.new(0.886274, 0.509803, 0.509803)  -- Default fill color (White)
+local workeroutlinecolor = Color3.new(0.278431, 0.254901, 0.254901)  -- Default outline color
+
+-- Variables to store connections for added and removed customers
+local addedconnection1
+local removedconnection1
+ESPSection:AddToggle('WorkerESP', {
+    Text = 'Worker ESP',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'Allows you to see workers',
+
+    Callback = function(Value)
+        enabled632 = Value
+        if enabled632 then
+			for j, child in Script.Variables.PLAYER_PLOT.Workers:GetChildren() do
+				local highlight = Instance.new("Highlight", child)
+                    highlight.Adornee = child
+                    highlight.FillColor = customerfillcolor -- Set fill color for the highlight
+                    highlight.OutlineColor = customeroutlinecolor -- Set outline color for the highlight
+                    highlight.OutlineTransparency = 0 -- Make the outline fully visible
+                    highlight.FillTransparency = 0.3 -- Set the fill transparency
+                    highlight.Enabled = true -- Ensure the highlight is enabled and visible
+			end
+            -- Event when a new child (customer) is added
+            addedconnection1 = Script.Variables.PLAYER_PLOT.Workers.ChildAdded:Connect(function(child)
+                if child.Name == "Customer" then
+					wait(1)
+                    local highlight = Instance.new("Highlight", child)
+                    highlight.Adornee = child
+                    highlight.FillColor = customerfillcolor -- Set fill color for the highlight
+                    highlight.OutlineColor = customeroutlinecolor -- Set outline color for the highlight
+                    highlight.OutlineTransparency = 0 -- Make the outline fully visible
+                    highlight.FillTransparency = 0.3 -- Set the fill transparency
+                    highlight.Enabled = true -- Ensure the highlight is enabled and visible
+                end
+            end)
+
+            -- Event when a customer is removed
+            removedconnection1 = Script.Variables.PLAYER_PLOT.Workers.ChildRemoved:Connect(function(child)
+            end)
+        else
+			for j, k in Script.Variables.PLAYER_PLOT.Workers:GetChildren() do
+				if k:FindFirstChild("Highlight") then
+					k.Highlight:Destroy()
+				end
+			end
+            if addedconnection1 then
+                addedconnection1:Disconnect()
+				
+            end
+            if removedconnection1 then
+                removedconnection1:Disconnect()
+            end
+        end
+    end,
+
+    Visible = true,
+    Risky = false
+})
+--// Objects ESP
+local enabled6322 = false
+local objectfillcolor = Color3.new(0.188235, 0.105882, 0.105882)  -- Default fill color (White)
+local objectoutlinecolor = Color3.new(0.278431, 0.254901, 0.254901)  -- Default outline color
+
+-- Variables to store connections for added and removed customers
+local addedconnection2
+local removedconnection2
+ESPSection:AddToggle('ObjectESP', {
+    Text = 'Object ESP',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'Allows you to see Objects',
+
+    Callback = function(Value)
+        enabled632 = Value
+        if enabled632 then
+			for j, child in Script.Variables.PLAYER_PLOT.Objects:GetChildren() do
+				local highlight = Instance.new("Highlight", child)
+                    highlight.Adornee = child
+                    highlight.FillColor = objectoutlinecolor -- Set fill color for the highlight
+                    highlight.OutlineColor = objectoutlinecolor -- Set outline color for the highlight
+                    highlight.OutlineTransparency = 0 -- Make the outline fully visible
+                    highlight.FillTransparency = 0.3 -- Set the fill transparency
+                    highlight.Enabled = true -- Ensure the highlight is enabled and visible
+			end
+            -- Event when a new child (customer) is added
+            addedconnection2 = Script.Variables.PLAYER_PLOT.Objects.ChildAdded:Connect(function(child)
+                if child.Name == "Customer" then
+					wait(1)
+                    local highlight = Instance.new("Highlight", child)
+                    highlight.Adornee = child
+                    highlight.FillColor = customerfillcolor -- Set fill color for the highlight
+                    highlight.OutlineColor = customeroutlinecolor -- Set outline color for the highlight
+                    highlight.OutlineTransparency = 0 -- Make the outline fully visible
+                    highlight.FillTransparency = 0.3 -- Set the fill transparency
+                    highlight.Enabled = true -- Ensure the highlight is enabled and visible
+                end
+            end)
+
+            -- Event when a customer is removed
+            removedconnection2 = Script.Variables.PLAYER_PLOT.Objects.ChildRemoved:Connect(function(child)
+                if child:FindFirstChild("Highlight") then
+                    child.Highlight:Destroy() -- Destroy the highlight when the customer is removed
+                end
+            end)
+        else
+			for j, k in Script.Variables.PLAYER_PLOT.Objects:GetChildren() do
+				if k:FindFirstChild("Highlight") then
+					k.Highlight:Destroy()
+				end
+			end
+            if addedconnection2 then
+                addedconnection2:Disconnect()
+				
+            end
+            if removedconnection2 then
+                removedconnection2:Disconnect()
+            end
+        end
+    end,
+
+    Visible = true,
+    Risky = false
+})
+--// Player ESP
+local enabled63222 = false
+local playerfillcolor = Color3.new(0.188235, 0.105882, 0.105882)  -- Default fill color (White)
+local playeroutlinecolor = Color3.new(0.278431, 0.254901, 0.254901)  -- Default outline color
+
+-- Variables to store connections for added and removed customers
+local addedconnection3
+local removedconnection3
+ESPSection:AddToggle('PlayerESP', {
+    Text = 'Player ESP',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'Allows you to see Players',
+
+    Callback = function(Value)
+        enabled63222 = Value
+        if enabled63222 then
+			for j, child in game.Players:GetChildren() do
+				local highlight = Instance.new("Highlight", child.Character)
+                    highlight.Adornee = child.Character
+                    highlight.FillColor = playerfillcolor -- Set fill color for the highlight
+                    highlight.OutlineColor = playeroutlinecolor -- Set outline color for the highlight
+                    highlight.OutlineTransparency = 0 -- Make the outline fully visible
+                    highlight.FillTransparency = 0.3 -- Set the fill transparency
+                    highlight.Enabled = true -- Ensure the highlight is enabled and visible
+			end
+            -- Event when a new child (customer) is added
+            addedconnection3 = game.Players.ChildAdded:Connect(function(child)
+                if child.Character then
+					wait(1)
+                    local highlight = Instance.new("Highlight", child.Character)
+                    highlight.Adornee = child.Character
+                    highlight.FillColor = playerfillcolor -- Set fill color for the highlight
+                    highlight.OutlineColor = playeroutlinecolor -- Set outline color for the highlight
+                    highlight.OutlineTransparency = 0 -- Make the outline fully visible
+                    highlight.FillTransparency = 0.3 -- Set the fill transparency
+                    highlight.Enabled = true -- Ensure the highlight is enabled and visible
+                end
+            end)
+
+            -- Event when a customer is removed
+            removedconnection3 = game.Players.ChildRemoved:Connect(function(child)
+                if child.Character:FindFirstChild("Highlight") then
+                    child.Character.Highlight:Destroy() -- Destroy the highlight when the customer is removed
+                end
+            end)
+        else
+			for j, k in game.Players:GetChildren() do
+				if k.Character:FindFirstChild("Highlight") then
+					k.Character.Highlight:Destroy()
+				end
+			end
+            if addedconnection3 then
+                addedconnection3:Disconnect()
+				
+            end
+            if removedconnection3 then
+                removedconnection3:Disconnect()
+            end
         end
     end,
 
