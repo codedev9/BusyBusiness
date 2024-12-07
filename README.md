@@ -2,5 +2,6 @@
 script for busy business
 # Script
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/codedev9/BusyBusiness/refs/heads/main/loader.lua"))()
+local busybusinessrepo = "https://raw.githubusercontent.com/codedev9/BusyBusiness/refs/heads/main/"
+loadstring(game:HttpGet(busybusinessrepo.."script.lua"))()
 ```

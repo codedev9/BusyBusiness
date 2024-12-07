@@ -4,6 +4,15 @@ local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))
 local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
 local Options = Library.Options
 local Toggles = Library.Toggles
+--//
+if game.GameId == 3937036363 then 
+    Library:Notify("Busy Business Loader - Loading Script...", nil, 4590657391)
+    wait(1)
+    Library:Notify("Busy Business Loader - Loaded Script....", nil, 4590657391)
+    wait(1)
+    Library:Notify("Busy Business Loader - Finished Loading", nil, 4590657391)
+    wait(1)
+end
 local PLAYER_PLOT
 for i, v in workspace.Plots:GetChildren() do
 	if v.Owner.Value == game.Players.LocalPlayer then 
