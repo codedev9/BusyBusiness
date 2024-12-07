@@ -43,7 +43,7 @@ Library.ShowCustomCursor = true -- Toggles the Linoria cursor globaly (Default v
 Library.NotifySide = "Left" -- Changes the side of the notifications globaly (Left, Right) (Default value = Left)
 --//
 local Window = Library:CreateWindow({
-	Title = 'Busy Business',
+	Title = 'Busy Business | Executor: '..identifyexecutor(),
 	Center = true,
 	AutoShow = true,
 	Resizable = true,
