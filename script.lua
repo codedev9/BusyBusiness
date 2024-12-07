@@ -502,14 +502,11 @@ RewardsSection:AddToggle('DailyRewards', {
 	Tooltip = 'Auto collects the daily rewards',
 	Callback = function(Value)
 		enabled32 = Value
-		
-		
 		while enabled32 and wait(0.05) do
 			for i = 1, 9 do
 				local args = {
-					[1] = yes.Name
+					[1] = i
 				}
-					
 				game:GetService("ReplicatedStorage"):WaitForChild("Communication"):WaitForChild("ClaimPlaytimeReward"):InvokeServer(unpack(args))
 				wait(0.05)	
 			end
