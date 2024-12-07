@@ -424,7 +424,7 @@ game:GetService("ReplicatedStorage"):WaitForChild("Communication"):WaitForChild(
 local crewselected
 local costumeselected
 local crewtable = {}
-local costumetable = {}
+local costumetable = {"Default"}
 for n, v in  game:GetService("Players").LocalPlayer.PlayerGui.Main.Menus.Costumes.Inner.Workers.List.Hold:GetChildren() do -- CREW TABLE SORTING
 	if v:IsA("Frame") and v.Name ~= "Example" then
 		local title = v.Title
@@ -463,6 +463,12 @@ WorkersSection:AddDropdown('CostumeDropdown', {
 local ChangeButton = WorkersSection:AddButton({
 	Text = 'Change Costume',
 	Func = function()
+		if Options.CostumeDropdown.Value == "Default" then
+			Script.Remotes.EquipCostume:FireServer(string.match(Options.CrewDropdown.Value, "%d+"))
+		else
+			Script.Remotes.EquipCostume:FireServer(string.match(Options.CrewDropdown.Value, "%d+"), Options.CostumeDropdown.Value)
+		end
+		Library:Notify("Change Costume - Changed Costumes for: "..Options.CrewDropdown.Value..".", nil, 4590657391)
 	end,
 	DoubleClick = false,
 	Tooltip = 'changes the crew into that costume'
@@ -472,6 +478,7 @@ local RefreshLists = WorkersSection:AddButton({
 	Func = function()
 		table.clear(crewtable)
 		table.clear(costumetable)
+		table.insert(costumetable, "Default")
 		for n, v in  game:GetService("Players").LocalPlayer.PlayerGui.Main.Menus.Costumes.Inner.Workers.List.Hold:GetChildren() do -- CREW TABLE SORTING
 			if v:IsA("Frame") and v.Name ~= "Example" then
 				local title = v.Title
