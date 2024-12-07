@@ -16,7 +16,8 @@ local Script = {
 		["CustomerOrder"] = game:GetService("ReplicatedStorage").Communication.CustomerOrder,
 		["ServeCustomer"] = game:GetService("ReplicatedStorage").Communication.ServeCustomer,
 		["UpgradeMachine"] = game:GetService("ReplicatedStorage").Communication.UpgradeMachine,
-		["UseTrash"] = game:GetService("ReplicatedStorage").Communication.UseTrash
+		["UseTrash"] = game:GetService("ReplicatedStorage").Communication.UseTrash,
+		["EquipCostume"] = game:GetService("ReplicatedStorage").Communication.EquipCostume
 	},
 	["Variables"] = {
 		["PLAYER_PLOT"] = PLAYER_PLOT,
@@ -135,6 +136,7 @@ local QuickButtonsRejoin = QuickButtonsSection:AddButton({
 })
 --// Game Tab
 local BusinessSection = Tabs.Game:AddLeftGroupbox('Business')
+local WorkersSection = Tabs.Game:AddRightGroupbox('Workers')
 local RewardsSection = Tabs.Game:AddLeftGroupbox('Rewards')
 local ExploitSection = Tabs.Game:AddRightGroupbox('Exploits')
 --// Business Section
@@ -426,10 +428,17 @@ local costumetable = {}
 for n, v in  game:GetService("Players").LocalPlayer.PlayerGui.Main.Menus.Costumes.Inner.Workers.List.Hold:GetChildren() do -- CREW TABLE SORTING
 	if v:IsA("Frame") and v.Name ~= "Example" then
 		local title = v.Title
+		table.insert(crewtable, title.Text)
 	end
 end
-BusinessSection:AddDropdown('CrewDropdown', {
-	Values = {},
+for n, v in  game:GetService("Players").LocalPlayer.PlayerGui.Main.Menus.Costumes.Inner.Costumes.List.Hold:GetChildren() do -- COSTUME TABLE SORTING
+	if v:IsA("Frame") and v.Name ~= "Example" then
+		local title = v.Title
+		table.insert(costumetable, title.Text)
+	end
+end
+WorkersSection:AddDropdown('CrewDropdown', {
+	Values = crewtable,
 	Default = 1, -- number index of the value / string
 	Multi = false, -- true / false, allows multiple choices to be selected
 
@@ -438,6 +447,46 @@ BusinessSection:AddDropdown('CrewDropdown', {
 
 	Callback = function(Value)
 	end
+})
+WorkersSection:AddDropdown('CostumeDropdown', {
+	Values = costumetable,
+	Default = 1, -- number index of the value / string
+	Multi = false, -- true / false, allows multiple choices to be selected
+
+	Text = 'Costume Selection',
+	Tooltip = 'select the costume you would like to change the crew into', -- Information shown when you hover over the dropdown
+
+	Callback = function(Value)
+
+	end
+})
+local ChangeButton = WorkersSection:AddButton({
+	Text = 'Change Costume',
+	Func = function()
+	end,
+	DoubleClick = false,
+	Tooltip = 'changes the crew into that costume'
+})
+local RefreshLists = WorkersSection:AddButton({
+	Text = 'Refresh Lists',
+	Func = function()
+		table.clear(crewtable)
+		table.clear(costumetable)
+		for n, v in  game:GetService("Players").LocalPlayer.PlayerGui.Main.Menus.Costumes.Inner.Workers.List.Hold:GetChildren() do -- CREW TABLE SORTING
+			if v:IsA("Frame") and v.Name ~= "Example" then
+				local title = v.Title
+				table.insert(crewtable, title.Text)
+			end
+		end
+		for n, v in  game:GetService("Players").LocalPlayer.PlayerGui.Main.Menus.Costumes.Inner.Costumes.List.Hold:GetChildren() do -- COSTUME TABLE SORTING
+			if v:IsA("Frame") and v.Name ~= "Example" then
+				local title = v.Title
+				table.insert(costumetable, title.Text)
+			end
+		end
+	end,
+	DoubleClick = false,
+	Tooltip = 'refreshs every dropdown'
 })
 --// Rewards Section
 local enabled32 = false
