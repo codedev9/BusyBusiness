@@ -677,8 +677,24 @@ CustomerExploitSection:AddToggle('SpoofEarnings', {
 local RemoverSection = Tabs.Visuals:AddLeftGroupbox('Remover')
 local ESPSection = Tabs.Visuals:AddLeftGroupbox('ESP')
 --// Remover Section
+RemoverSection:AddToggle('RemoveObjectsHitbox', {
+    Text = 'Disable Objects Hitbox',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'noclip on objects',
 
+    Callback = function(Value)
+        for i, v in Script.Variables.PLAYER_PLOT.Objects:GetChildren() do
+            for _, object in pairs(v:GetDescendants()) do
+                if object:IsA("MeshPart") or object:IsA("Part") and object.Name ~= "Hitbox" then
+                    object.CanCollide = not Value
+                end
+            end
+        end
+    end,
 
+    Visible = true,
+    Risky = false
+})
 
 --// ESP Section
 local Players = game:GetService("Players")
